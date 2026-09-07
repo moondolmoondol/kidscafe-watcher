@@ -158,12 +158,15 @@ def fetch_detail(date):
     items = {}
 
     for t in value.get("tmeData") or []:
-        remain = (t.get("usePsncpa") or 0) - (t.get("resvePsncpa") or 0)
+        # resvePsncpa = 이 회차에 배정된 예약 가능 정원(전체 시설 정원인 usePsncpa와 다름)
+        # resveNmpr   = 그중 이미 예약된 인원
+        remain = (t.get("resvePsncpa") or 0) - (t.get("resveNmpr") or 0)
         key = "[키즈카페] {}회 {}".format(t.get("tmeSn"), t.get("tmeSeNm") or "")
         items[key] = max(remain, 0)
 
     for p in value.get("progrmData") or []:
-        remain = (p.get("totUseNmpr") or 0) - (p.get("posUserNmpr") or 0)
+        # posUserNmpr 자체가 이미 "잔여 가능 인원" 값입니다.
+        remain = p.get("posUserNmpr") or 0
         begin = p.get("progrmBeginTime") or ""
         end = p.get("progrmEndTime") or ""
         name = (p.get("progrmNm") or "").strip()
