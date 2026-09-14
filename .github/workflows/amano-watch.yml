@@ -32,6 +32,18 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TARGET_DATES: "2026-09-26"
+          AUTO_BOOK: "true"
+          CUSTOMER_NAME: ${{ secrets.AMANO_CUSTOMER_NAME }}
+          CUSTOMER_PHONE: ${{ secrets.AMANO_CUSTOMER_PHONE }}
+          CAR_NUMBER: ${{ secrets.AMANO_CAR_NUMBER }}
+          CAR_MODEL: ${{ secrets.AMANO_CAR_MODEL }}
+          CAR_BRAND: ${{ secrets.AMANO_CAR_BRAND }}
+          CAR_COLOR: ${{ secrets.AMANO_CAR_COLOR }}
+          CAR_TYPE: "BASIC"
+          DEPARTING_AT: "2026-09-26 09:30"
+          ARRIVED_AT: "2026-09-28 20:30"
+          DEPARTING_AIR: "LJ"
+          IS_USING_CAR_WASH: "false"
         run: python monitor.py
 
       - name: 상태 파일 커밋
