@@ -123,6 +123,21 @@ def check_date(date_str):
     return bool(body.get("data", False))
 
 
+def missing_booking_config():
+    """예약에 반드시 필요한 값 중 비어있는 항목의 이름 목록을 돌려줍니다.
+    GitHub Secrets 이름을 잘못 등록하면 os.environ.get()이 조용히 빈 문자열을
+    돌려주기 때문에, 잘못된 값으로 예약이 나가버리는 것을 막기 위한 안전장치."""
+    required = {
+        "CUSTOMER_NAME": CUSTOMER_NAME,
+        "CUSTOMER_PHONE": CUSTOMER_PHONE,
+        "CAR_NUMBER": CAR_NUMBER,
+        "DEPARTING_AT": DEPARTING_AT,
+        "ARRIVED_AT": ARRIVED_AT,
+        "DEPARTING_AIR": DEPARTING_AIR,
+    }
+    return [name for name, value in required.items() if not value]
+
+
 def book_reservation():
     """설정된 정보로 실제 예약을 접수하고 (성공 여부, 응답 본문/에러메시지)를 반환합니다."""
     data = {
@@ -236,7 +251,16 @@ def main():
             opened_text = "\n".join(lines)
             log("★★★ 새로 열림!\n" + opened_text)
 
-            if AUTO_BOOK:
+            missing = missing_booking_config() if AUTO_BOOK else []
+            if AUTO_BOOK and missing:
+                text = (
+                    "🚨 아마노 주차대행 예약이 가능해졌는데 자동예약 설정이 불완전해서 시도하지 못했습니다!\n\n"
+                    + opened_text
+                    + "\n\n비어있는 값: {}\n(GitHub Secrets 이름이 잘못 등록됐을 수 있습니다)\n\n"
+                    "서둘러 직접 예약해 주세요: {}".format(", ".join(missing), BOOKING_PAGE_URL)
+                )
+                log("자동예약 설정 누락으로 건너뜀: {}".format(missing))
+            elif AUTO_BOOK:
                 log("자동예약을 시도합니다...")
                 ok, resp = book_reservation()
                 if ok:
