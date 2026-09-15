@@ -158,7 +158,11 @@ def book_reservation():
     try:
         with urllib.request.urlopen(req, timeout=20) as r:
             resp = json.loads(r.read().decode("utf-8"))
-        ok = bool(resp.get("result", {}).get("code") == 200)
+        # 사이트 프론트엔드 로직과 동일하게, result.code==200 은 API 호출 자체가
+        # 정상 처리됐다는 뜻일 뿐이고, 실제 예약 성사 여부는 응답의 data 필드가
+        # (uid 등으로) 채워져 있는지로 판단해야 한다. data 가 null/false 면 예약은
+        # 거절된 것이다 (경쟁 상황으로 자리가 이미 소진된 경우 등).
+        ok = bool(resp.get("data"))
         return ok, resp
     except urllib.error.HTTPError as e:
         try:
@@ -240,17 +244,24 @@ def main():
                     text = (
                         "🚗 아마노 주차대행 예약이 가능해져서 자동으로 예약을 접수했습니다!\n\n"
                         + opened_text
-                        + "\n\n성명: {}\n차량번호: {}\n출발: {}\n귀국: {}\n\n"
-                        "예약 확인: {}/booking-check".format(
-                            CUSTOMER_NAME, CAR_NUMBER, DEPARTING_AT, ARRIVED_AT, BOOKING_PAGE_URL.rsplit("/", 1)[0]
+                        + "\n\n성명: {}\n차량번호: {}\n출발: {}\n귀국: {}\n예약 데이터: {}\n\n"
+                        "반드시 예약확인 페이지에서 실제로 등록됐는지 확인해 주세요: {}/booking-check".format(
+                            CUSTOMER_NAME,
+                            CAR_NUMBER,
+                            DEPARTING_AT,
+                            ARRIVED_AT,
+                            resp.get("data"),
+                            BOOKING_PAGE_URL.rsplit("/", 1)[0],
                         )
                     )
                     log("자동예약 성공: {}".format(resp))
                 else:
+                    # 예약이 거절된 경우이므로 booked 플래그를 세우지 않는다.
+                    # (다음 번 자리가 다시 열리면 재시도할 수 있도록)
                     text = (
                         "⚠️ 아마노 주차대행 예약이 가능해졌지만 자동예약에 실패했습니다!\n\n"
                         + opened_text
-                        + "\n\n실패 사유: {}\n\n서둘러 직접 예약해 주세요: {}".format(resp, BOOKING_PAGE_URL)
+                        + "\n\n서버 응답: {}\n\n서둘러 직접 예약해 주세요: {}".format(resp, BOOKING_PAGE_URL)
                     )
                     log("자동예약 실패: {}".format(resp))
             else:
