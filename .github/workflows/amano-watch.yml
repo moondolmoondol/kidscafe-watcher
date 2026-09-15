@@ -1,8 +1,11 @@
 name: 아마노 주차대행 예약 감시
 
 on:
-  schedule:
-    - cron: "*/5 * * * *"
+  # 감시/자동예약 일시 중지 중입니다. 필요할 때 아래 schedule 줄의 주석을
+  # 해제하면 다시 5분마다 자동 실행됩니다. 그 전까지는 Actions 탭에서
+  # workflow_dispatch(수동 실행)로만 돌릴 수 있습니다.
+  # schedule:
+  #   - cron: "*/5 * * * *"
   workflow_dispatch: {}
 
 permissions:
